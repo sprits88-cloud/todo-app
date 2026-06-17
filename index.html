@@ -15,31 +15,101 @@
         <div class="app-bar-content">
             <span class="material-icons app-icon">check_circle</span>
             <h1 class="app-title">My Todo List</h1>
+            <div id="userMenuDisplay" class="user-menu hidden">
+                <span id="headerUserEmail" class="header-email"></span>
+                <button id="logoutBtn" class="btn-logout">
+                    <span class="material-icons">logout</span>
+                    로그아웃
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 인증 모달 -->
+    <div id="authModal" class="modal">
+        <div class="modal-content card">
+            <div class="modal-header">
+                <h2 id="modalTitle">로그인</h2>
+                <button id="closeModalBtn" class="btn-icon">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <!-- 로그인 폼 -->
+            <div id="loginForm" class="auth-form">
+                <div class="input-field">
+                    <span class="material-icons input-icon">email</span>
+                    <input type="email" id="loginEmail" placeholder="이메일" required>
+                </div>
+                <div class="input-field">
+                    <span class="material-icons input-icon">lock</span>
+                    <input type="password" id="loginPassword" placeholder="비밀번호" required>
+                </div>
+                <button id="loginBtn" class="btn-primary btn-full">
+                    <span class="material-icons">login</span>
+                    로그인
+                </button>
+                <p class="auth-switch">
+                    계정이 없으신가요? <a id="showSignup" href="#">회원가입</a>
+                </p>
+            </div>
+
+            <!-- 회원가입 폼 -->
+            <div id="signupForm" class="auth-form hidden">
+                <div class="input-field">
+                    <span class="material-icons input-icon">person</span>
+                    <input type="text" id="signupName" placeholder="이름" required>
+                </div>
+                <div class="input-field">
+                    <span class="material-icons input-icon">email</span>
+                    <input type="email" id="signupEmail" placeholder="이메일" required>
+                </div>
+                <div class="input-field">
+                    <span class="material-icons input-icon">lock</span>
+                    <input type="password" id="signupPassword" placeholder="비밀번호 (최소 6자)" required>
+                </div>
+                <div class="input-field">
+                    <span class="material-icons input-icon">lock</span>
+                    <input type="password" id="signupPasswordConfirm" placeholder="비밀번호 확인" required>
+                </div>
+                <button id="signupBtn" class="btn-primary btn-full">
+                    <span class="material-icons">person_add</span>
+                    회원가입
+                </button>
+                <p class="auth-switch">
+                    이미 계정이 있으신가요? <a id="showLogin" href="#">로그인</a>
+                </p>
+            </div>
+
+            <!-- 이메일 확인 안내 -->
+            <div id="emailVerificationMessage" class="verification-message hidden">
+                <span class="material-icons verification-icon">mark_email_read</span>
+                <h3>이메일을 확인해주세요</h3>
+                <p>회원가입이 완료되었습니다!<br>이메일로 전송된 인증 링크를 클릭하여 계정을 활성화하세요.</p>
+                <button id="backToLoginBtn" class="btn-primary">로그인으로 돌아가기</button>
+            </div>
         </div>
     </div>
 
     <div class="container">
         <!-- 내 정보 섹션 -->
         <section class="card user-info-card">
-            <div id="userDisplay" class="user-display hidden">
+            <div id="userDisplay" class="user-display">
                 <div class="user-avatar">
                     <span class="material-icons">person</span>
                 </div>
                 <div class="user-details">
                     <span id="userName"></span>
+                    <span id="userEmail" class="user-email-small"></span>
                 </div>
                 <button id="editUserBtn" class="btn-icon">
                     <span class="material-icons">edit</span>
                 </button>
             </div>
-            <div id="userForm" class="user-form">
+            <div id="userForm" class="user-form hidden">
                 <div class="input-field">
                     <span class="material-icons input-icon">person</span>
                     <input type="text" id="userNameInput" placeholder="이름을 입력하세요">
-                </div>
-                <div class="input-field">
-                    <span class="material-icons input-icon">email</span>
-                    <input type="email" id="userEmailInput" placeholder="이메일을 입력하세요">
                 </div>
                 <button id="saveUserBtn" class="btn-primary">
                     <span class="material-icons">save</span>

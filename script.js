@@ -13,15 +13,41 @@ let currentProfileId = null;
 let draggedElement = null;
 let draggedTodoId = null;
 
-// DOM 요소
+// DOM 요소 - Auth
+const authModal = document.getElementById('authModal');
+const closeModalBtn = document.getElementById('closeModalBtn');
+const modalTitle = document.getElementById('modalTitle');
+const loginForm = document.getElementById('loginForm');
+const signupForm = document.getElementById('signupForm');
+const emailVerificationMessage = document.getElementById('emailVerificationMessage');
+const showSignupLink = document.getElementById('showSignup');
+const showLoginLink = document.getElementById('showLogin');
+const backToLoginBtn = document.getElementById('backToLoginBtn');
+
+const loginEmail = document.getElementById('loginEmail');
+const loginPassword = document.getElementById('loginPassword');
+const loginBtn = document.getElementById('loginBtn');
+
+const signupName = document.getElementById('signupName');
+const signupEmail = document.getElementById('signupEmail');
+const signupPassword = document.getElementById('signupPassword');
+const signupPasswordConfirm = document.getElementById('signupPasswordConfirm');
+const signupBtn = document.getElementById('signupBtn');
+
+const logoutBtn = document.getElementById('logoutBtn');
+const userMenuDisplay = document.getElementById('userMenuDisplay');
+const headerUserEmail = document.getElementById('headerUserEmail');
+
+// DOM 요소 - User
 const userNameInput = document.getElementById('userNameInput');
-const userEmailInput = document.getElementById('userEmailInput');
 const saveUserBtn = document.getElementById('saveUserBtn');
 const editUserBtn = document.getElementById('editUserBtn');
 const userDisplay = document.getElementById('userDisplay');
 const userForm = document.getElementById('userForm');
 const userName = document.getElementById('userName');
+const userEmail = document.getElementById('userEmail');
 
+// DOM 요소 - Calendar & Todo
 const prevMonthBtn = document.getElementById('prevMonth');
 const nextMonthBtn = document.getElementById('nextMonth');
 const currentMonthEl = document.getElementById('currentMonth');
@@ -50,15 +76,9 @@ function hideLoading() {
 async function init() {
     showLoading();
     try {
-        await initAuth();
-        await loadUserInfo();
-        await loadTodos();
-        renderCalendar();
-        updateSelectedDate();
-        renderTodos();
+        await checkAuth();
         attachEventListeners();
-        setupDragAndDrop();
-        setupRealtimeSubscription();
+        setupAuthEventListeners();
     } catch (error) {
         console.error('Initialization error:', error);
         alert('초기화 중 오류가 발생했습니다.');
@@ -67,22 +87,246 @@ async function init() {
     }
 }
 
-// 인증 초기화 (익명 로그인)
-async function initAuth() {
-    // 기존 세션 확인
+// 인증 상태 확인
+async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
 
     if (session) {
         currentUser = session.user;
+        await onUserAuthenticated();
     } else {
-        // 익명 로그인
-        const { data, error } = await supabase.auth.signInAnonymously();
-        if (error) {
-            console.error('Auth error:', error);
-            throw error;
-        }
-        currentUser = data.user;
+        showAuthModal();
     }
+}
+
+// 사용자 인증 후 처리
+async function onUserAuthenticated() {
+    hideAuthModal();
+    showUserMenu();
+    await loadUserInfo();
+    await loadTodos();
+    renderCalendar();
+    updateSelectedDate();
+    renderTodos();
+    setupDragAndDrop();
+    setupRealtimeSubscription();
+}
+
+// Auth 이벤트 리스너
+function setupAuthEventListeners() {
+    // 로그인/회원가입 전환
+    showSignupLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showSignupFormView();
+    });
+
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        showLoginFormView();
+    });
+
+    backToLoginBtn.addEventListener('click', () => {
+        showLoginFormView();
+    });
+
+    // 모달 닫기
+    closeModalBtn.addEventListener('click', () => {
+        // 로그인하지 않은 상태에서는 모달을 닫을 수 없음
+        if (!currentUser) {
+            alert('로그인이 필요합니다.');
+            return;
+        }
+        hideAuthModal();
+    });
+
+    // 로그인
+    loginBtn.addEventListener('click', handleLogin);
+    loginPassword.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleLogin();
+    });
+
+    // 회원가입
+    signupBtn.addEventListener('click', handleSignup);
+    signupPasswordConfirm.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') handleSignup();
+    });
+
+    // 로그아웃
+    logoutBtn.addEventListener('click', handleLogout);
+
+    // Supabase auth state 변화 감지
+    supabase.auth.onAuthStateChange((event, session) => {
+        console.log('Auth state changed:', event, session);
+
+        if (event === 'SIGNED_IN' && session) {
+            currentUser = session.user;
+            onUserAuthenticated();
+        } else if (event === 'SIGNED_OUT') {
+            currentUser = null;
+            currentProfileId = null;
+            todos = [];
+            showAuthModal();
+            hideUserMenu();
+        }
+    });
+}
+
+// 로그인 처리
+async function handleLogin() {
+    const email = loginEmail.value.trim();
+    const password = loginPassword.value.trim();
+
+    if (!email || !password) {
+        alert('이메일과 비밀번호를 입력해주세요.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email,
+            password: password
+        });
+
+        if (error) {
+            if (error.message.includes('Invalid login credentials')) {
+                alert('이메일 또는 비밀번호가 올바르지 않습니다.');
+            } else if (error.message.includes('Email not confirmed')) {
+                alert('이메일 인증이 완료되지 않았습니다. 이메일을 확인해주세요.');
+            } else {
+                alert('로그인 중 오류가 발생했습니다: ' + error.message);
+            }
+            return;
+        }
+
+        // 성공 시 onAuthStateChange에서 처리됨
+        loginEmail.value = '';
+        loginPassword.value = '';
+    } catch (error) {
+        console.error('Login error:', error);
+        alert('로그인 중 오류가 발생했습니다.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// 회원가입 처리
+async function handleSignup() {
+    const name = signupName.value.trim();
+    const email = signupEmail.value.trim();
+    const password = signupPassword.value.trim();
+    const passwordConfirm = signupPasswordConfirm.value.trim();
+
+    if (!name || !email || !password || !passwordConfirm) {
+        alert('모든 필드를 입력해주세요.');
+        return;
+    }
+
+    if (password.length < 6) {
+        alert('비밀번호는 최소 6자 이상이어야 합니다.');
+        return;
+    }
+
+    if (password !== passwordConfirm) {
+        alert('비밀번호가 일치하지 않습니다.');
+        return;
+    }
+
+    showLoading();
+    try {
+        const { data, error } = await supabase.auth.signUp({
+            email: email,
+            password: password,
+            options: {
+                data: {
+                    name: name
+                }
+            }
+        });
+
+        if (error) {
+            if (error.message.includes('already registered')) {
+                alert('이미 가입된 이메일입니다.');
+            } else {
+                alert('회원가입 중 오류가 발생했습니다: ' + error.message);
+            }
+            return;
+        }
+
+        // 이메일 확인 메시지 표시
+        showEmailVerificationView();
+
+        // 폼 초기화
+        signupName.value = '';
+        signupEmail.value = '';
+        signupPassword.value = '';
+        signupPasswordConfirm.value = '';
+    } catch (error) {
+        console.error('Signup error:', error);
+        alert('회원가입 중 오류가 발생했습니다.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// 로그아웃 처리
+async function handleLogout() {
+    if (!confirm('로그아웃 하시겠습니까?')) return;
+
+    showLoading();
+    try {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Logout error:', error);
+            alert('로그아웃 중 오류가 발생했습니다.');
+            return;
+        }
+        // onAuthStateChange에서 처리됨
+    } catch (error) {
+        console.error('Logout error:', error);
+        alert('로그아웃 중 오류가 발생했습니다.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// 모달 표시 관련 함수
+function showAuthModal() {
+    authModal.classList.remove('hidden');
+    showLoginFormView();
+}
+
+function hideAuthModal() {
+    authModal.classList.add('hidden');
+}
+
+function showLoginFormView() {
+    modalTitle.textContent = '로그인';
+    loginForm.classList.remove('hidden');
+    signupForm.classList.add('hidden');
+    emailVerificationMessage.classList.add('hidden');
+}
+
+function showSignupFormView() {
+    modalTitle.textContent = '회원가입';
+    loginForm.classList.add('hidden');
+    signupForm.classList.remove('hidden');
+    emailVerificationMessage.classList.add('hidden');
+}
+
+function showEmailVerificationView() {
+    loginForm.classList.add('hidden');
+    signupForm.classList.add('hidden');
+    emailVerificationMessage.classList.remove('hidden');
+}
+
+function showUserMenu() {
+    userMenuDisplay.classList.remove('hidden');
+    headerUserEmail.textContent = currentUser.email;
+}
+
+function hideUserMenu() {
+    userMenuDisplay.classList.add('hidden');
 }
 
 // 이벤트 리스너
@@ -117,15 +361,49 @@ async function loadUserInfo() {
             userInfo = profiles;
             currentProfileId = profiles.id;
             displayUserInfo();
+        } else {
+            // 프로필이 없으면 자동 생성
+            await createInitialProfile();
         }
     } catch (error) {
         console.error('Load user info error:', error);
     }
 }
 
+async function createInitialProfile() {
+    showLoading();
+    try {
+        const name = currentUser.user_metadata?.name || currentUser.email.split('@')[0];
+
+        const profileData = {
+            auth_user_id: currentUser.id,
+            name: name,
+            email: currentUser.email
+        };
+
+        const { data, error } = await supabase
+            .from('profiles')
+            .insert(profileData)
+            .select()
+            .single();
+
+        if (error) {
+            console.error('Create profile error:', error);
+            return;
+        }
+
+        userInfo = data;
+        currentProfileId = data.id;
+        displayUserInfo();
+    } catch (error) {
+        console.error('Create initial profile error:', error);
+    } finally {
+        hideLoading();
+    }
+}
+
 async function saveUserInfo() {
     const name = userNameInput.value.trim();
-    const email = userEmailInput.value.trim();
 
     if (!name) {
         alert('이름을 입력해주세요.');
@@ -134,15 +412,10 @@ async function saveUserInfo() {
 
     showLoading();
     try {
-        const profileData = {
-            auth_user_id: currentUser.id,
-            name: name,
-            email: email
-        };
-
         const { data, error } = await supabase
             .from('profiles')
-            .upsert(profileData)
+            .update({ name: name })
+            .eq('id', currentProfileId)
             .select()
             .single();
 
@@ -153,7 +426,6 @@ async function saveUserInfo() {
         }
 
         userInfo = data;
-        currentProfileId = data.id;
         displayUserInfo();
     } catch (error) {
         console.error('Save user info error:', error);
@@ -164,14 +436,14 @@ async function saveUserInfo() {
 }
 
 function displayUserInfo() {
-    userName.textContent = `👤 ${userInfo.name} ${userInfo.email ? `(${userInfo.email})` : ''}`;
+    userName.textContent = userInfo.name;
+    userEmail.textContent = userInfo.email;
     userDisplay.classList.remove('hidden');
     userForm.classList.add('hidden');
 }
 
 function editUserInfo() {
     userNameInput.value = userInfo.name;
-    userEmailInput.value = userInfo.email || '';
     userDisplay.classList.add('hidden');
     userForm.classList.remove('hidden');
 }

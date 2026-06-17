@@ -46,13 +46,52 @@ body {
 }
 
 .app-bar-content {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
     height: 100%;
     display: flex;
     align-items: center;
+    justify-content: space-between;
     padding: 0 16px;
     gap: 16px;
+}
+
+.user-menu {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.user-menu.hidden {
+    display: none;
+}
+
+.header-email {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 14px;
+}
+
+.btn-logout {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Roboto', sans-serif;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.btn-logout .material-icons {
+    font-size: 18px;
 }
 
 .app-icon {
@@ -147,9 +186,20 @@ body {
 
 .user-details {
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-details > span:first-child {
     font-size: 16px;
     font-weight: 500;
     color: var(--on-surface);
+}
+
+.user-email-small {
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.54);
 }
 
 .user-form {
@@ -649,6 +699,117 @@ body {
     .sidebar-left {
         flex: none;
     }
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    padding: 16px;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    max-width: 480px;
+    width: 100%;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: modalFadeIn 0.3s ease-out;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--on-surface);
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.auth-form.hidden {
+    display: none;
+}
+
+.btn-full {
+    width: 100%;
+}
+
+.auth-switch {
+    text-align: center;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.54);
+    margin: 8px 0 0 0;
+}
+
+.auth-switch a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.verification-message {
+    text-align: center;
+    padding: 32px 16px;
+}
+
+.verification-message.hidden {
+    display: none;
+}
+
+.verification-icon {
+    font-size: 64px;
+    color: var(--primary);
+    margin-bottom: 16px;
+}
+
+.verification-message h3 {
+    margin: 16px 0;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--on-surface);
+}
+
+.verification-message p {
+    margin: 16px 0 24px 0;
+    color: rgba(0, 0, 0, 0.54);
+    line-height: 1.6;
 }
 
 /* Loading Overlay */
