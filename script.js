@@ -74,14 +74,18 @@ function hideLoading() {
 
 // 초기화
 async function init() {
+    console.log('Initializing app...');
+    console.log('Supabase client:', typeof supabase !== 'undefined' ? 'OK' : 'MISSING');
+
     showLoading();
     try {
         await checkAuth();
         attachEventListeners();
         setupAuthEventListeners();
+        console.log('Initialization complete');
     } catch (error) {
         console.error('Initialization error:', error);
-        alert('초기화 중 오류가 발생했습니다.');
+        alert('초기화 중 오류가 발생했습니다: ' + error.message);
     } finally {
         hideLoading();
     }
@@ -114,6 +118,9 @@ async function onUserAuthenticated() {
 
 // Auth 이벤트 리스너
 function setupAuthEventListeners() {
+    console.log('Setting up auth event listeners...');
+    console.log('signupBtn:', signupBtn);
+
     // 로그인/회원가입 전환
     showSignupLink.addEventListener('click', (e) => {
         e.preventDefault();
@@ -146,7 +153,16 @@ function setupAuthEventListeners() {
     });
 
     // 회원가입
-    signupBtn.addEventListener('click', handleSignup);
+    if (signupBtn) {
+        signupBtn.addEventListener('click', (e) => {
+            console.log('Signup button clicked', e);
+            handleSignup();
+        });
+        console.log('Signup button listener attached');
+    } else {
+        console.error('signupBtn not found!');
+    }
+
     signupPasswordConfirm.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') handleSignup();
     });
@@ -212,10 +228,14 @@ async function handleLogin() {
 
 // 회원가입 처리
 async function handleSignup() {
+    console.log('handleSignup called');
+
     const name = signupName.value.trim();
     const email = signupEmail.value.trim();
     const password = signupPassword.value.trim();
     const passwordConfirm = signupPasswordConfirm.value.trim();
+
+    console.log('Signup form values:', { name, email, passwordLength: password.length });
 
     if (!name || !email || !password || !passwordConfirm) {
         alert('모든 필드를 입력해주세요.');
@@ -234,6 +254,8 @@ async function handleSignup() {
 
     showLoading();
     try {
+        console.log('Calling supabase.auth.signUp...');
+
         const { data, error } = await supabase.auth.signUp({
             email: email,
             password: password,
@@ -244,7 +266,10 @@ async function handleSignup() {
             }
         });
 
+        console.log('Signup response:', { data, error });
+
         if (error) {
+            console.error('Signup error:', error);
             if (error.message.includes('already registered')) {
                 alert('이미 가입된 이메일입니다.');
             } else {
@@ -252,6 +277,8 @@ async function handleSignup() {
             }
             return;
         }
+
+        console.log('Signup successful, showing verification view');
 
         // 이메일 확인 메시지 표시
         showEmailVerificationView();
@@ -262,8 +289,8 @@ async function handleSignup() {
         signupPassword.value = '';
         signupPasswordConfirm.value = '';
     } catch (error) {
-        console.error('Signup error:', error);
-        alert('회원가입 중 오류가 발생했습니다.');
+        console.error('Signup exception:', error);
+        alert('회원가입 중 오류가 발생했습니다: ' + error.message);
     } finally {
         hideLoading();
     }
