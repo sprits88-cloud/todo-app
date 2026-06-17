@@ -1,7 +1,8 @@
 // Supabase 클라이언트 초기화
 const SUPABASE_URL = 'https://dndqwpbpksdpntsdudla.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZHF3cGJwa3NkcG50c2R1ZGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzMxNTgsImV4cCI6MjA5NzI0OTE1OH0.IYuaJHwYIbo4m80GdisdQJKP_nyc--BFChI9sIjvaZo';
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const { createClient } = window.supabase;
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 전역 변수
 let currentDate = new Date();
