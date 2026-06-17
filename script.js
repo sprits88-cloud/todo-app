@@ -1,8 +1,7 @@
 // Supabase 클라이언트 초기화
 const SUPABASE_URL = 'https://dndqwpbpksdpntsdudla.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRuZHF3cGJwa3NkcG50c2R1ZGxhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE2NzMxNTgsImV4cCI6MjA5NzI0OTE1OH0.IYuaJHwYIbo4m80GdisdQJKP_nyc--BFChI9sIjvaZo';
-const { createClient } = window.supabase;
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // 전역 변수
 let currentDate = new Date();
@@ -76,7 +75,7 @@ function hideLoading() {
 // 초기화
 async function init() {
     console.log('Initializing app...');
-    console.log('Supabase client:', typeof supabase !== 'undefined' ? 'OK' : 'MISSING');
+    console.log('Supabase client:', typeof supabaseClient !== 'undefined' ? 'OK' : 'MISSING');
 
     showLoading();
     try {
@@ -94,7 +93,7 @@ async function init() {
 
 // 인증 상태 확인
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseClient.auth.getSession();
 
     if (session) {
         currentUser = session.user;
@@ -172,7 +171,7 @@ function setupAuthEventListeners() {
     logoutBtn.addEventListener('click', handleLogout);
 
     // Supabase auth state 변화 감지
-    supabase.auth.onAuthStateChange((event, session) => {
+    supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth state changed:', event, session);
 
         if (event === 'SIGNED_IN' && session) {
@@ -200,7 +199,7 @@ async function handleLogin() {
 
     showLoading();
     try {
-        const { data, error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabaseClient.auth.signInWithPassword({
             email: email,
             password: password
         });
@@ -255,9 +254,9 @@ async function handleSignup() {
 
     showLoading();
     try {
-        console.log('Calling supabase.auth.signUp...');
+        console.log('Calling supabaseClient.auth.signUp...');
 
-        const { data, error } = await supabase.auth.signUp({
+        const { data, error } = await supabaseClient.auth.signUp({
             email: email,
             password: password,
             options: {
@@ -303,7 +302,7 @@ async function handleLogout() {
 
     showLoading();
     try {
-        const { error } = await supabase.auth.signOut();
+        const { error } = await supabaseClient.auth.signOut();
         if (error) {
             console.error('Logout error:', error);
             alert('로그아웃 중 오류가 발생했습니다.');
@@ -374,7 +373,7 @@ function attachEventListeners() {
 // 사용자 정보 관리
 async function loadUserInfo() {
     try {
-        const { data: profiles, error } = await supabase
+        const { data: profiles, error } = await supabaseClient
             .from('profiles')
             .select('*')
             .eq('auth_user_id', currentUser.id)
@@ -409,7 +408,7 @@ async function createInitialProfile() {
             email: currentUser.email
         };
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('profiles')
             .insert(profileData)
             .select()
@@ -440,7 +439,7 @@ async function saveUserInfo() {
 
     showLoading();
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('profiles')
             .update({ name: name })
             .eq('id', currentProfileId)
@@ -575,7 +574,7 @@ async function loadTodos() {
     if (!currentProfileId) return;
 
     try {
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('todos')
             .select('*')
             .eq('user_id', currentProfileId)
@@ -614,7 +613,7 @@ async function addTodo() {
         const sameDateTodos = todos.filter(t => t.date === dateStr && t.priority === priority);
         const maxOrder = sameDateTodos.length > 0 ? Math.max(...sameDateTodos.map(t => t.order)) : -1;
 
-        const { data, error } = await supabase
+        const { data, error } = await supabaseClient
             .from('todos')
             .insert({
                 user_id: currentProfileId,
@@ -653,7 +652,7 @@ async function toggleTodo(id) {
 
     showLoading();
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('todos')
             .update({ completed: !todo.completed })
             .eq('id', id);
@@ -679,7 +678,7 @@ async function deleteTodo(id) {
 
     showLoading();
     try {
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('todos')
             .delete()
             .eq('id', id);
@@ -886,7 +885,7 @@ async function handleContainerDrop(e) {
 
         // Supabase에 일괄 업데이트
         for (const update of updates) {
-            await supabase
+            await supabaseClient
                 .from('todos')
                 .update({ priority: update.priority, order: update.order })
                 .eq('id', update.id);
@@ -925,7 +924,7 @@ function setupRealtimeSubscription() {
     if (!currentProfileId) return;
 
     // Todos 실시간 구독
-    supabase
+    supabaseClient
         .channel('todos-changes')
         .on(
             'postgres_changes',
