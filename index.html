@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="style.css">
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="app-bar">
+        <div class="app-bar-content">
+            <span class="material-icons app-icon">check_circle</span>
+            <h1 class="app-title">My Todo List</h1>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- 내 정보 섹션 -->
+        <section class="card user-info-card">
+            <div id="userDisplay" class="user-display hidden">
+                <div class="user-avatar">
+                    <span class="material-icons">person</span>
+                </div>
+                <div class="user-details">
+                    <span id="userName"></span>
+                </div>
+                <button id="editUserBtn" class="btn-icon">
+                    <span class="material-icons">edit</span>
+                </button>
+            </div>
+            <div id="userForm" class="user-form">
+                <div class="input-field">
+                    <span class="material-icons input-icon">person</span>
+                    <input type="text" id="userNameInput" placeholder="이름을 입력하세요">
+                </div>
+                <div class="input-field">
+                    <span class="material-icons input-icon">email</span>
+                    <input type="email" id="userEmailInput" placeholder="이메일을 입력하세요">
+                </div>
+                <button id="saveUserBtn" class="btn-primary">
+                    <span class="material-icons">save</span>
+                    저장
+                </button>
+            </div>
+        </section>
+
+        <!-- 메인 레이아웃: 달력(왼쪽) + Todo(오른쪽) -->
+        <div class="main-layout">
+            <!-- 왼쪽: 달력 영역 -->
+            <aside class="sidebar-left">
+                <!-- 달력 섹션 -->
+                <section class="card calendar-card">
+                    <div class="card-header">
+                        <button id="prevMonth" class="btn-icon">
+                            <span class="material-icons">chevron_left</span>
+                        </button>
+                        <h2 id="currentMonth" class="card-title"></h2>
+                        <button id="nextMonth" class="btn-icon">
+                            <span class="material-icons">chevron_right</span>
+                        </button>
+                    </div>
+                    <div id="calendar" class="calendar"></div>
+                    <div class="selected-date-chip">
+                        <span class="material-icons chip-icon">event</span>
+                        <span id="selectedDate"></span>
+                    </div>
+                </section>
+            </aside>
+
+            <!-- 오른쪽: Todo 영역 -->
+            <main class="content-right">
+                <!-- 할일 추가 섹션 -->
+                <section class="card add-todo-card">
+                    <div class="add-todo-form">
+                        <div class="input-field todo-input-field">
+                            <span class="material-icons input-icon">add_task</span>
+                            <input type="text" id="todoInput" placeholder="할 일을 입력하세요">
+                        </div>
+                        <div class="add-todo-actions">
+                            <select id="prioritySelect" class="priority-select">
+                                <option value="high">🔴 높음</option>
+                                <option value="medium" selected>🟡 보통</option>
+                                <option value="low">🟢 낮음</option>
+                            </select>
+                            <button id="addTodoBtn" class="btn-fab">
+                                <span class="material-icons">add</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 할일 리스트 섹션 -->
+                <section class="todo-lists">
+                    <div class="card priority-card high-priority">
+                        <div class="card-header">
+                            <span class="material-icons priority-icon">priority_high</span>
+                            <h3 class="card-title">높은 우선순위</h3>
+                        </div>
+                        <ul id="todoListHigh" class="todo-container" data-priority="high"></ul>
+                    </div>
+
+                    <div class="card priority-card medium-priority">
+                        <div class="card-header">
+                            <span class="material-icons priority-icon">remove</span>
+                            <h3 class="card-title">보통 우선순위</h3>
+                        </div>
+                        <ul id="todoListMedium" class="todo-container" data-priority="medium"></ul>
+                    </div>
+
+                    <div class="card priority-card low-priority">
+                        <div class="card-header">
+                            <span class="material-icons priority-icon">keyboard_arrow_down</span>
+                            <h3 class="card-title">낮은 우선순위</h3>
+                        </div>
+                        <ul id="todoListLow" class="todo-container" data-priority="low"></ul>
+                    </div>
+
+                    <div id="emptyMessage" class="empty-state">
+                        <span class="material-icons empty-icon">inbox</span>
+                        <p>할 일이 없습니다</p>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-spinner"></div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
