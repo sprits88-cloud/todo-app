@@ -767,6 +767,70 @@ body {
     width: 100%;
 }
 
+/* Social Login Styles */
+.social-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0 16px 0;
+    color: rgba(0, 0, 0, 0.54);
+    font-size: 14px;
+}
+
+.social-divider::before,
+.social-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.social-divider span {
+    padding: 0 16px;
+}
+
+.social-login-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.btn-social {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    background: white;
+    color: rgba(0, 0, 0, 0.87);
+    font-size: 14px;
+    font-weight: 500;
+    font-family: 'Roboto', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-social:hover {
+    background: rgba(0, 0, 0, 0.04);
+    box-shadow: var(--shadow-1);
+}
+
+.btn-social:active {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.btn-social .social-icon {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-github .social-icon {
+    color: #24292e;
+}
+
 .auth-switch {
     text-align: center;
     font-size: 14px;

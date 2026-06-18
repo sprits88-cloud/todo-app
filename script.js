@@ -38,6 +38,10 @@ const logoutBtn = document.getElementById('logoutBtn');
 const userMenuDisplay = document.getElementById('userMenuDisplay');
 const headerUserEmail = document.getElementById('headerUserEmail');
 
+// Social login buttons
+const googleLoginBtn = document.getElementById('googleLoginBtn');
+const githubLoginBtn = document.getElementById('githubLoginBtn');
+
 // DOM 요소 - User
 const userNameInput = document.getElementById('userNameInput');
 const saveUserBtn = document.getElementById('saveUserBtn');
@@ -169,6 +173,10 @@ function setupAuthEventListeners() {
 
     // 로그아웃
     logoutBtn.addEventListener('click', handleLogout);
+
+    // 소셜 로그인
+    googleLoginBtn.addEventListener('click', handleGoogleLogin);
+    githubLoginBtn.addEventListener('click', handleGithubLogin);
 
     // Supabase auth state 변화 감지
     supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -312,6 +320,60 @@ async function handleLogout() {
     } catch (error) {
         console.error('Logout error:', error);
         alert('로그아웃 중 오류가 발생했습니다.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// Google 소셜 로그인 처리
+async function handleGoogleLogin() {
+    showLoading();
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname
+            }
+        });
+
+        if (error) {
+            console.error('Google login error:', error);
+            alert('Google 로그인 중 오류가 발생했습니다: ' + error.message);
+            return;
+        }
+
+        // OAuth는 리디렉션을 통해 처리되므로 여기서는 별도 처리 불필요
+        console.log('Google login initiated:', data);
+    } catch (error) {
+        console.error('Google login error:', error);
+        alert('Google 로그인 중 오류가 발생했습니다.');
+    } finally {
+        hideLoading();
+    }
+}
+
+// GitHub 소셜 로그인 처리
+async function handleGithubLogin() {
+    showLoading();
+    try {
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+                redirectTo: window.location.origin + window.location.pathname
+            }
+        });
+
+        if (error) {
+            console.error('GitHub login error:', error);
+            alert('GitHub 로그인 중 오류가 발생했습니다: ' + error.message);
+            return;
+        }
+
+        // OAuth는 리디렉션을 통해 처리되므로 여기서는 별도 처리 불필요
+        console.log('GitHub login initiated:', data);
+    } catch (error) {
+        console.error('GitHub login error:', error);
+        alert('GitHub 로그인 중 오류가 발생했습니다.');
     } finally {
         hideLoading();
     }
@@ -870,7 +932,7 @@ async function handleContainerDrop(e) {
         const updates = [];
 
         containerItems.forEach((item, index) => {
-            const todoId = item.getAttribute('data-todo-id');
+            const todoId = parseInt(item.getAttribute('data-todo-id'));
             const todo = todos.find(t => t.id === todoId);
             if (todo) {
                 todo.order = index;
@@ -885,10 +947,15 @@ async function handleContainerDrop(e) {
 
         // Supabase에 일괄 업데이트
         for (const update of updates) {
-            await supabaseClient
+            const { error } = await supabaseClient
                 .from('todos')
                 .update({ priority: update.priority, order: update.order })
                 .eq('id', update.id);
+
+            if (error) {
+                console.error('Update todo error:', error);
+                throw error;
+            }
         }
 
         renderTodos();
